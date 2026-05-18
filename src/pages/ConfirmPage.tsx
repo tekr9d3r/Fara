@@ -8,7 +8,7 @@ import { Stock } from "@/lib/types";
 import { addHolding } from "@/lib/portfolio";
 import { compressImage } from "@/lib/imageUtils";
 import { useWallet } from "@/contexts/WalletContext";
-import { useWallets } from "@privy-io/react-auth";
+import { useWalletClient } from "wagmi";
 import { supabase } from "@/integrations/supabase/client";
 import {
   fetchEthPrice,
@@ -34,7 +34,7 @@ const ConfirmPage = () => {
   const location = useLocation();
   const { stock, amount, image } = (location.state as { stock: Stock; amount: number; image: string }) || {};
   const { isAuthenticated, userId, address } = useWallet();
-  const { wallets } = useWallets();
+  const { data: walletClient } = useWalletClient();
 
   const [phase, setPhase] = useState<Phase>("confirm");
   const [txHash, setTxHash] = useState("");
@@ -82,8 +82,7 @@ const ConfirmPage = () => {
       return;
     }
 
-    const wallet = wallets.find((w) => w.walletClientType === "privy") || wallets[0];
-    if (!wallet) {
+    if (!walletClient) {
       toast.error("No wallet found. Please connect first.");
       return;
     }
@@ -111,15 +110,14 @@ const ConfirmPage = () => {
 
       setPhase("confirming");
 
-      const eip1193 = await wallet.getEthereumProvider();
-      const recipient = address || (await wallet.address);
+      const recipient = address || walletClient.account.address;
 
       const { hash, tokensReceived: received } = await executeSwap(
         stock.poolAddress,
         finalEthWei,
         minOut,
         recipient,
-        eip1193
+        walletClient
       );
 
       setTxHash(hash);

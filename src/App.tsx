@@ -2,12 +2,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { PrivyProvider } from "@privy-io/react-auth";
+import { WagmiProvider } from "wagmi";
+import { ConnectKitProvider } from "connectkit";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { BottomNav } from "@/components/BottomNav";
 import { TopBar } from "@/components/TopBar";
+import { wagmiConfig } from "@/lib/wagmi";
 import Index from "./pages/Index";
 import LandingPage from "./pages/LandingPage";
 import CameraPage from "./pages/CameraPage";
@@ -20,73 +22,41 @@ import ReadmePage from "./pages/ReadmePage";
 
 const queryClient = new QueryClient();
 
-const privyAppId = "cmlvmgiov00w30bjxom0snwdw";
-
 const App = () => (
-  <PrivyProvider
-    appId={privyAppId}
-    config={{
-      appearance: {
-        theme: "dark",
-        accentColor: "#00dc82",
-        walletList: ["detected_ethereum_wallets", "wallet_connect", "metamask", "coinbase_wallet", "rainbow"],
-      },
-      loginMethods: ["wallet"],
-      embeddedWallets: {
-        ethereum: {
-          createOnLogin: "off",
-        },
-      },
-      supportedChains: [
-        {
-          id: 46630,
-          name: "Robinhood Chain Testnet",
-          nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-          rpcUrls: {
-            default: { http: ["https://rpc.testnet.chain.robinhood.com"] },
-          },
-          blockExplorers: {
-            default: { name: "Explorer", url: "https://explorer.testnet.chain.robinhood.com" },
-          },
-          testnet: true,
-        },
-      ],
-      defaultChain: {
-        id: 46630,
-        name: "Robinhood Chain Testnet",
-        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-        rpcUrls: {
-          default: { http: ["https://rpc.testnet.chain.robinhood.com"] },
-        },
-        testnet: true,
-      },
-    }}
-  >
+  <WagmiProvider config={wagmiConfig}>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <WalletProvider>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/app" element={<Index />} />
-              <Route path="/camera" element={<CameraPage />} />
-              <Route path="/result" element={<ResultPage />} />
-              <Route path="/confirm" element={<ConfirmPage />} />
-              <Route path="/portfolio" element={<PortfolioPage />} />
-              <Route path="/feed" element={<FeedPage />} />
-              <Route path="/readme" element={<ReadmePage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <TopBar />
-            <BottomNav />
-            <Analytics />
-          </WalletProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ConnectKitProvider
+        theme="midnight"
+        customTheme={{
+          "--ck-accent-color": "#00dc82",
+          "--ck-accent-text-color": "#000000",
+        }}
+      >
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <WalletProvider>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/app" element={<Index />} />
+                <Route path="/camera" element={<CameraPage />} />
+                <Route path="/result" element={<ResultPage />} />
+                <Route path="/confirm" element={<ConfirmPage />} />
+                <Route path="/portfolio" element={<PortfolioPage />} />
+                <Route path="/feed" element={<FeedPage />} />
+                <Route path="/readme" element={<ReadmePage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <TopBar />
+              <BottomNav />
+              <Analytics />
+            </WalletProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ConnectKitProvider>
     </QueryClientProvider>
-  </PrivyProvider>
+  </WagmiProvider>
 );
 
 export default App;

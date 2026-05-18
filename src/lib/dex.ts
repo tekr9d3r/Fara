@@ -1,4 +1,5 @@
 import { BrowserProvider, Contract, formatUnits, parseEther } from "ethers";
+import type { WalletClient } from "viem";
 
 export const MOCK_SWAP_PAIR_ABI = [
   "function swapEthForTokens(uint256 minTokensOut, address to) external payable returns (uint256 tokensOut)",
@@ -44,9 +45,9 @@ export async function executeSwap(
   ethAmountWei: bigint,
   minTokensOut: bigint,
   recipientAddress: string,
-  eip1193Provider: unknown,
+  walletClient: WalletClient,
 ): Promise<{ hash: string; tokensReceived: string }> {
-  const ethersProvider = new BrowserProvider(eip1193Provider as Parameters<typeof BrowserProvider>[0]);
+  const ethersProvider = new BrowserProvider(walletClient.transport as Parameters<typeof BrowserProvider>[0]);
 
   // Switch to Robinhood Chain, adding it first if the wallet doesn't know it
   const network = await ethersProvider.getNetwork();

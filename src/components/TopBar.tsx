@@ -1,28 +1,10 @@
 import { useLocation } from "react-router-dom";
 import { useWallet } from "@/contexts/WalletContext";
-import { Button } from "@/components/ui/button";
-import { Wallet, LogOut, ExternalLink } from "lucide-react";
-import { useCallback } from "react";
-
-const isInIframe = (() => {
-  try {
-    return window.self !== window.top;
-  } catch {
-    return true;
-  }
-})();
+import { ConnectKitButton } from "connectkit";
 
 export function TopBar() {
   const location = useLocation();
-  const { address, shortAddress, isConnecting, connect, disconnect } = useWallet();
-
-  const handleConnect = useCallback(() => {
-    if (isInIframe) {
-      window.open(window.location.href.replace(/id-preview--[^.]+\.lovable\.app/, "snap-buy-vision.lovable.app"), "_blank");
-      return;
-    }
-    connect();
-  }, [connect]);
+  const { address, shortAddress, disconnect } = useWallet();
 
   if (["/", "/camera", "/result", "/confirm"].includes(location.pathname)) return null;
 
@@ -32,19 +14,7 @@ export function TopBar() {
         <span className="font-display text-sm font-bold text-foreground">
           Snap<span className="text-primary">'n</span>Invest
         </span>
-        {address ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-muted-foreground">{shortAddress}</span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={disconnect}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <Button variant="outline" size="sm" onClick={handleConnect} disabled={isConnecting}>
-            {isInIframe ? <ExternalLink className="h-4 w-4 mr-1" /> : <Wallet className="h-4 w-4 mr-1" />}
-            {isConnecting ? "Connecting…" : isInIframe ? "Open to Connect" : "Connect"}
-          </Button>
-        )}
+        <ConnectKitButton />
       </div>
     </header>
   );

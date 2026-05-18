@@ -1,10 +1,36 @@
 import { useLocation } from "react-router-dom";
-import { useWallet } from "@/contexts/WalletContext";
 import { ConnectKitButton } from "connectkit";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import robinhoodLogo from "@/assets/robinhood-logo.png";
+
+const ROBINHOOD_CHAIN = {
+  chainId: "0xB636",
+  chainName: "Robinhood Chain Testnet",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: ["https://rpc.testnet.chain.robinhood.com"],
+  blockExplorerUrls: ["https://explorer.testnet.chain.robinhood.com"],
+};
+
+async function addRobinhoodChain() {
+  if (!window.ethereum) {
+    toast.error("No wallet detected. Please install MetaMask or another wallet.");
+    return;
+  }
+  try {
+    await window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [ROBINHOOD_CHAIN],
+    });
+    toast.success("Robinhood Chain Testnet added to your wallet!");
+  } catch (err: any) {
+    if (err?.code === 4001) return; // user rejected
+    toast.error("Failed to add chain: " + (err?.message ?? "unknown error"));
+  }
+}
 
 export function TopBar() {
   const location = useLocation();
-  const { address, shortAddress, disconnect } = useWallet();
 
   if (["/", "/camera", "/result", "/confirm"].includes(location.pathname)) return null;
 
@@ -14,7 +40,18 @@ export function TopBar() {
         <span className="font-display text-sm font-bold text-foreground">
           Snap<span className="text-primary">'n</span>Invest
         </span>
-        <ConnectKitButton />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={addRobinhoodChain}
+            className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <img src={robinhoodLogo} alt="" className="h-3.5 w-3.5 rounded-sm" />
+            Add Chain
+          </Button>
+          <ConnectKitButton />
+        </div>
       </div>
     </header>
   );

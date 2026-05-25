@@ -34,7 +34,7 @@ export function TopBar() {
   const location = useLocation();
   const { isWrongChain, switchToRobinhood } = useWallet();
 
-  if (["/", "/camera", "/result", "/confirm"].includes(location.pathname)) return null;
+  if (["/landing", "/camera", "/result", "/confirm"].includes(location.pathname)) return null;
 
   return (
     <>

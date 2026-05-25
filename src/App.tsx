@@ -38,8 +38,8 @@ const App = () => (
           <BrowserRouter>
             <WalletProvider>
               <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/app" element={<Index />} />
+                <Route path="/" element={<Index />} />
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/camera" element={<CameraPage />} />
                 <Route path="/result" element={<ResultPage />} />
                 <Route path="/confirm" element={<ConfirmPage />} />

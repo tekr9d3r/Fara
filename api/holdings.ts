@@ -22,14 +22,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const rows = userId
         ? await sql`
-            SELECT id, ticker, name, logo_url, amount_invested, shares, price_at_purchase,
+            SELECT id, ticker, name, logo_url,
+                   amount_invested::float8 AS amount_invested,
+                   shares::float8 AS shares,
+                   price_at_purchase::float8 AS price_at_purchase,
                    captured_image_url, tx_hash, created_at, user_id
             FROM holdings
             WHERE user_id = ${userId}
             ORDER BY created_at DESC
             LIMIT ${limit}`
         : await sql`
-            SELECT id, ticker, name, logo_url, amount_invested, shares, price_at_purchase,
+            SELECT id, ticker, name, logo_url,
+                   amount_invested::float8 AS amount_invested,
+                   shares::float8 AS shares,
+                   price_at_purchase::float8 AS price_at_purchase,
                    captured_image_url, tx_hash, created_at, user_id
             FROM holdings
             ORDER BY created_at DESC

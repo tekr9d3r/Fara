@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Zap, Trophy, Star, Utensils, ShoppingBag } from "lucide-react";
 import { StockLogo } from "@/components/StockLogo";
 import { useWallet } from "@/contexts/WalletContext";
 import { differenceInDays, differenceInHours } from "date-fns";
@@ -20,20 +19,25 @@ interface Challenge {
   enrolled: boolean;
 }
 
-const TYPE_CONFIG: Record<string, { label: string; accent: string; iconBg: string; icon: typeof Zap }> = {
-  weekly:  { label: "Weekly",          accent: "text-emerald-600", iconBg: "bg-emerald-50", icon: Zap },
-  food:    { label: "Food & Drink",    accent: "text-orange-600",  iconBg: "bg-orange-50",  icon: Utensils },
-  fashion: { label: "Fashion & Shoes", accent: "text-pink-600",    iconBg: "bg-pink-50",    icon: ShoppingBag },
-  grand:   { label: "Grand Challenge", accent: "text-purple-600",  iconBg: "bg-purple-50",  icon: Star },
+// Badge colors match design: weekly=green, food=orange, fashion=pink, grand=purple
+const TYPE_CONFIG: Record<string, { label: string; badgeBg: string; badgeText: string; icon: string }> = {
+  weekly:  { label: "Weekly",          badgeBg: "bg-green-50",  badgeText: "text-green-700",  icon: "⚡" },
+  food:    { label: "Food & Drink",    badgeBg: "bg-orange-50", badgeText: "text-orange-700", icon: "🍔" },
+  fashion: { label: "Fashion & Shoes", badgeBg: "bg-pink-50",   badgeText: "text-pink-700",   icon: "👟" },
+  grand:   { label: "Grand Challenge", badgeBg: "bg-purple-50", badgeText: "text-purple-700", icon: "⭐" },
 };
 
 function timeLeft(endsAt: string): string {
   const end = new Date(endsAt);
   const days = differenceInDays(end, new Date());
-  if (days > 1) return `${days}d`;
+  if (days > 0) return `${days}`;
   const hours = differenceInHours(end, new Date());
-  if (hours > 0) return `${hours}h`;
-  return "ending";
+  return hours > 0 ? `${hours}h` : "—";
+}
+
+function timeLeftUnit(endsAt: string): string {
+  const days = differenceInDays(new Date(endsAt), new Date());
+  return days > 0 ? "days left" : "hours left";
 }
 
 function ChallengeCard({
@@ -46,7 +50,6 @@ function ChallengeCard({
   index: number;
 }) {
   const config = TYPE_CONFIG[challenge.challenge_type] ?? TYPE_CONFIG.weekly;
-  const Icon = config.icon;
   const found = challenge.progress.length;
   const total = challenge.tickers.length;
   const completed = found >= total;
@@ -57,90 +60,97 @@ function ChallengeCard({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06 }}
-      className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+      className="overflow-hidden rounded-[20px] bg-white shadow-sm"
+      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
     >
-      {/* ── Header ── */}
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${config.iconBg}`}>
-          <Icon className={`h-4 w-4 ${config.accent}`} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{config.label}</p>
-          <p className="text-sm font-bold text-gray-900 leading-tight">{challenge.name}</p>
-        </div>
+      {/* ── Card header ── */}
+      <div className="flex items-center gap-2.5 px-4 py-4">
+        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${config.badgeBg} ${config.badgeText}`}>
+          {config.icon} {config.label}
+        </span>
+        <span className="text-[16px] font-bold text-gray-900">{challenge.name}</span>
         {completed && (
-          <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
+          <span className="ml-auto shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-semibold text-green-700">
             🎉 In draw
           </span>
         )}
       </div>
 
-      {/* ── 3-stat row ── */}
-      <div className="mx-4 mb-3 grid grid-cols-3 divide-x divide-gray-100 rounded-xl border border-gray-100 bg-gray-50">
-        <div className="flex flex-col items-center py-2.5 px-2">
-          <span className="text-[10px] font-medium text-gray-400 mb-0.5">Prize</span>
-          <span className={`text-xs font-bold ${config.accent} text-center leading-tight`}>{challenge.prize}</span>
+      {/* ── 3-stat row — exact design spec ── */}
+      {/* gap-px + bg-gray-100 creates 1px dividers between cells */}
+      <div className="grid grid-cols-3 gap-px bg-gray-100 border-t border-b border-gray-100">
+        {/* Days left */}
+        <div className="flex flex-col items-center bg-white px-2.5 py-3 text-center">
+          <span className="text-[15px] leading-none mb-0.5">⏱</span>
+          <span className="text-[15px] font-bold text-gray-900 leading-tight">{timeLeft(challenge.ends_at)}</span>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">{timeLeftUnit(challenge.ends_at)}</span>
         </div>
-        <div className="flex flex-col items-center py-2.5 px-2">
-          <span className="text-[10px] font-medium text-gray-400 mb-0.5">Time left</span>
-          <span className="text-sm font-bold text-gray-900">{timeLeft(challenge.ends_at)}</span>
+        {/* Found */}
+        <div className="flex flex-col items-center bg-white px-2.5 py-3 text-center">
+          <span className="text-[15px] leading-none mb-0.5">◎</span>
+          <span className="text-[15px] font-bold text-gray-900 leading-tight">{found} / {total}</span>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">Found</span>
         </div>
-        <div className="flex flex-col items-center py-2.5 px-2">
-          <span className="text-[10px] font-medium text-gray-400 mb-0.5">Completed</span>
-          <span className="text-sm font-bold text-gray-900">{challenge.completedCount}</span>
+        {/* Prize — warm amber tint */}
+        <div className="flex flex-col items-center bg-amber-50 px-2.5 py-3 text-center">
+          <span className="text-[15px] leading-none mb-0.5">🏅</span>
+          <span className="text-[15px] font-bold text-amber-700 leading-tight">{challenge.prize}</span>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">Prize</span>
         </div>
       </div>
 
-      {/* ── Ticker pills ── */}
-      <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+      {/* ── Brand chips ── */}
+      <div className="flex flex-wrap gap-2 px-3.5 pt-3.5 pb-2">
         {challenge.tickers.map((ticker) => {
           const done = challenge.progress.includes(ticker);
           return (
             <div
               key={ticker}
-              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border transition-colors
+              className={`flex items-center gap-1.5 rounded-full border-[1.5px] pl-1.5 pr-3 py-1 text-[13px] font-semibold transition-all select-none
                 ${done
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                  : "bg-gray-50 border-gray-200 text-gray-400"
+                  ? "border-green-400 bg-green-50 text-green-800"
+                  : "border-gray-200 bg-white text-gray-700"
                 }`}
             >
-              {done
-                ? <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
-                : <Circle className="h-3 w-3 text-gray-300 shrink-0" />
-              }
-              <StockLogo ticker={ticker} size="sm" className="h-3 w-3" />
+              <div className="h-[26px] w-[26px] shrink-0 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                <StockLogo ticker={ticker} size="sm" className="h-[22px] w-[22px]" />
+              </div>
               {ticker}
             </div>
           );
         })}
       </div>
 
-      {/* ── Progress + action ── */}
-      <div className="px-4 pb-4">
-        <div className="mb-1.5 flex items-center justify-between text-[11px] text-gray-400">
-          <span>{found} / {total} found</span>
-          {challenge.enrolled && !completed && (
-            <span className="text-emerald-600 font-medium">Tracking</span>
-          )}
-        </div>
+      {/* ── Progress bar + label ── */}
+      <div className="px-4 pb-1 pt-1">
         <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100">
           <motion.div
-            className="h-full rounded-full bg-emerald-500"
+            className="h-full rounded-full bg-green-500"
             initial={{ width: 0 }}
             animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
           />
         </div>
-
-        {!challenge.enrolled && !completed && (
-          <button
-            onClick={() => onEnroll(challenge)}
-            className="mt-3 w-full rounded-xl bg-gray-900 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 active:scale-[0.98] transition-all"
-          >
-            Join & Track
-          </button>
-        )}
+        <p className="mt-1.5 text-[12px] text-gray-400">{found} / {total} found</p>
       </div>
+
+      {/* ── CTA ── */}
+      {!completed && (
+        <div className="px-3.5 pb-4 pt-2">
+          {challenge.enrolled ? (
+            <div className="w-full rounded-[14px] bg-gray-50 border border-gray-200 py-3.5 text-center text-[15px] font-semibold text-gray-500">
+              Tracking progress
+            </div>
+          ) : (
+            <button
+              onClick={() => onEnroll(challenge)}
+              className="w-full rounded-[14px] bg-gray-900 py-[15px] text-[15px] font-semibold text-white hover:bg-gray-800 active:scale-[0.98] transition-all"
+            >
+              Join &amp; Track Progress
+            </button>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -166,16 +176,16 @@ export function ChallengeCards() {
   useEffect(() => { load(); }, [address]);
 
   if (loading) return (
-    <div className="w-full max-w-md px-4 space-y-3">
+    <div className="w-full max-w-md px-4 space-y-3.5">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-40 rounded-2xl border border-gray-100 bg-white shadow-sm animate-pulse" />
+        <div key={i} className="h-44 rounded-[20px] bg-white animate-pulse" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }} />
       ))}
     </div>
   );
 
   if (challenges.length === 0) return (
     <div className="w-full max-w-md px-4">
-      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-4 py-6 text-center text-sm text-gray-400">
+      <div className="rounded-[20px] bg-white px-4 py-6 text-center text-sm text-gray-400" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
         No active challenges right now — check back soon!
       </div>
     </div>
@@ -183,7 +193,8 @@ export function ChallengeCards() {
 
   return (
     <>
-      <div className="w-full max-w-md px-4 space-y-3">
+      {/* Cards use mx-4 to match design's margin: 0 16px */}
+      <div className="w-full max-w-md space-y-3.5 px-4">
         {challenges.map((c, i) => (
           <ChallengeCard
             key={c.id}

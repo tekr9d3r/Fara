@@ -30,7 +30,7 @@ export function EmailGateModal({ challenge, onClose, onSuccess }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/challenge-enroll", {
+      const res = await fetch("/api/challenges", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: address, challengeId: challenge.id, email }),

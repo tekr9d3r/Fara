@@ -8,7 +8,6 @@ function getDb() {
 }
 
 // GET /api/leaderboard
-// Returns top hunters ranked by challenge completions + total mints
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -19,7 +18,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const sql = getDb();
 
-    // Get active challenge tickers
     const challenges = await sql`
       SELECT id, tickers, starts_at, ends_at
       FROM challenges
@@ -27,36 +25,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ORDER BY created_at DESC
       LIMIT 1`;
 
-    const challenge = challenges[0] || null;
+    const challenge = challenges[0] ?? null;
     const tickers: string[] = challenge?.tickers ?? [];
+    const startsAt: string = challenge?.starts_at ?? new Date(0).toISOString();
+    const endsAt: string = challenge?.ends_at ?? new Date().toISOString();
 
-    // Per-user stats: total snaps, unique stocks, challenge progress
-    const rows = await sql`
+    const baseRows = await sql`
       SELECT
-        h.user_id,
+        user_id,
         COUNT(*)::int AS total_snaps,
-        COUNT(DISTINCT h.ticker)::int AS unique_stocks,
-        COUNT(DISTINCT CASE
-          WHEN ${tickers.length} > 0
-            AND h.ticker = ANY(${tickers.length > 0 ? tickers : ['__none__']})
-            AND (${challenge ? challenge.starts_at : 'now()'::text}::timestamptz IS NULL OR h.created_at >= ${challenge?.starts_at ?? 'now()'}::timestamptz)
-          THEN h.ticker
-        END)::int AS challenge_progress,
-        MAX(h.created_at) AS last_snap_at
-      FROM holdings h
-      GROUP BY h.user_id
-      ORDER BY challenge_progress DESC, total_snaps DESC
+        COUNT(DISTINCT ticker)::int AS unique_stocks,
+        MAX(created_at) AS last_snap_at
+      FROM holdings
+      GROUP BY user_id
+      ORDER BY total_snaps DESC
       LIMIT 50`;
 
-    const leaderboard = rows.map((r, i) => ({
-      rank: i + 1,
+    const progressMap = new Map<string, number>();
+    if (tickers.length > 0) {
+      const progressRows = await sql`
+        SELECT user_id, COUNT(DISTINCT ticker)::int AS challenge_progress
+        FROM holdings
+        WHERE ticker = ANY(${tickers})
+          AND created_at >= ${startsAt}
+          AND created_at <= ${endsAt}
+        GROUP BY user_id`;
+
+      for (const row of progressRows) {
+        progressMap.set(row.user_id as string, row.challenge_progress as number);
+      }
+    }
+
+    const merged = baseRows.map((r) => ({
       user_id: r.user_id as string,
       total_snaps: r.total_snaps as number,
       unique_stocks: r.unique_stocks as number,
-      challenge_progress: r.challenge_progress as number,
-      challenge_total: tickers.length,
-      completed: (r.challenge_progress as number) >= tickers.length && tickers.length > 0,
+      challenge_progress: progressMap.get(r.user_id as string) ?? 0,
       last_snap_at: r.last_snap_at as string,
+    }));
+
+    merged.sort((a, b) =>
+      b.challenge_progress !== a.challenge_progress
+        ? b.challenge_progress - a.challenge_progress
+        : b.total_snaps - a.total_snaps
+    );
+
+    const leaderboard = merged.map((r, i) => ({
+      rank: i + 1,
+      user_id: r.user_id,
+      total_snaps: r.total_snaps,
+      unique_stocks: r.unique_stocks,
+      challenge_progress: r.challenge_progress,
+      challenge_total: tickers.length,
+      completed: r.challenge_progress >= tickers.length && tickers.length > 0,
+      last_snap_at: r.last_snap_at,
     }));
 
     return res.status(200).json({ leaderboard, challenge_tickers: tickers });

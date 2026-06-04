@@ -63,10 +63,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       WHERE active = true AND ends_at > now()
       ORDER BY
         CASE challenge_type
-          WHEN 'weekly' THEN 1
-          WHEN 'board' THEN 2
-          WHEN 'grand' THEN 3
-          ELSE 4
+          WHEN 'weekly'   THEN 1
+          WHEN 'food'     THEN 2
+          WHEN 'fashion'  THEN 3
+          WHEN 'grand'    THEN 4
+          ELSE 5
         END,
         created_at DESC`;
 

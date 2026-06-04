@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Zap, Trophy, Star } from "lucide-react";
+import { CheckCircle2, Circle, Zap, Trophy, Star, Utensils, ShoppingBag } from "lucide-react";
 import { StockLogo } from "@/components/StockLogo";
 import { useWallet } from "@/contexts/WalletContext";
 import { differenceInDays, differenceInHours } from "date-fns";
@@ -21,9 +21,10 @@ interface Challenge {
 }
 
 const TYPE_CONFIG: Record<string, { label: string; accent: string; iconBg: string; icon: typeof Zap }> = {
-  weekly: { label: "Weekly",          accent: "text-emerald-600", iconBg: "bg-emerald-50", icon: Zap },
-  board:  { label: "30-Day",          accent: "text-blue-600",    iconBg: "bg-blue-50",    icon: Trophy },
-  grand:  { label: "Grand Challenge", accent: "text-purple-600",  iconBg: "bg-purple-50",  icon: Star },
+  weekly:  { label: "Weekly",          accent: "text-emerald-600", iconBg: "bg-emerald-50", icon: Zap },
+  food:    { label: "Food & Drink",    accent: "text-orange-600",  iconBg: "bg-orange-50",  icon: Utensils },
+  fashion: { label: "Fashion & Shoes", accent: "text-pink-600",    iconBg: "bg-pink-50",    icon: ShoppingBag },
+  grand:   { label: "Grand Challenge", accent: "text-purple-600",  iconBg: "bg-purple-50",  icon: Star },
 };
 
 function timeLeft(endsAt: string): string {

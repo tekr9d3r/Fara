@@ -1,8 +1,9 @@
 import { neon } from "@neondatabase/serverless";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-// POST /api/challenge-seed — creates all three challenge tiers
-// Safe to re-run: skips any challenge_type that already has an active entry.
+// POST /api/challenge-seed — creates all four challenge types
+// Safe to re-run: skips types that already have an active entry.
+// Also deactivates any legacy 'board' challenges.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
@@ -10,6 +11,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!url) return res.status(500).json({ error: "DATABASE_URL not set" });
 
   const sql = neon(url);
+
+  // Deactivate any old Collector's Board challenges
+  await sql`UPDATE challenges SET active = false WHERE challenge_type = 'board'`;
 
   const existing = await sql`
     SELECT challenge_type FROM challenges WHERE active = true AND ends_at > now()`;
@@ -25,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       INSERT INTO challenges (name, description, tickers, prize, challenge_type, ends_at)
       VALUES (
         ${"Weekly Sprint"},
-        ${"Find 5 iconic brands this week. Snap each one, mint the stock, and enter the raffle to win a free stock token!"},
+        ${"5 brands, 7 days. Snap each one in the real world, mint the stock, enter the raffle."},
         ${["AAPL", "MCD", "NKE", "SBUX", "TSLA"]},
         ${"1 free stock token"},
         ${"weekly"},
@@ -34,21 +38,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     created.push("weekly");
   }
 
-  // --- Collector's Board (10 stocks, 30 days) ---
-  if (!existingTypes.has("board")) {
+  // --- Food & Drink Hunt (5 food stocks, 30 days) ---
+  if (!existingTypes.has("food")) {
     const endsAt = new Date();
     endsAt.setDate(endsAt.getDate() + 30);
     await sql`
       INSERT INTO challenges (name, description, tickers, prize, challenge_type, ends_at)
       VALUES (
-        ${"Collector's Board"},
-        ${"Build your board! Snap 10 different brands across everyday life over the next 30 days to win $5 in free stocks."},
-        ${["AAPL", "TSLA", "MCD", "NKE", "SBUX", "AMZN", "GOOGL", "META", "NFLX", "DIS"]},
-        ${"$5 in free stock tokens"},
-        ${"board"},
+        ${"Food & Drink Hunt"},
+        ${"Find 5 of the world's biggest food and drink brands. Snap them, mint them, win free stock."},
+        ${["MCD", "SBUX", "KO", "PEP", "CMG"]},
+        ${"1 free food stock"},
+        ${"food"},
         ${endsAt.toISOString()}
       )`;
-    created.push("board");
+    created.push("food");
+  }
+
+  // --- Fashion & Footwear Drop (5 fashion stocks, 30 days) ---
+  if (!existingTypes.has("fashion")) {
+    const endsAt = new Date();
+    endsAt.setDate(endsAt.getDate() + 30);
+    await sql`
+      INSERT INTO challenges (name, description, tickers, prize, challenge_type, ends_at)
+      VALUES (
+        ${"Fashion & Footwear Drop"},
+        ${"Hunt down 5 iconic clothing and shoe brands in the wild. Snap, mint, and win free stock."},
+        ${["NKE", "LULU", "RL", "UA", "PVH"]},
+        ${"1 free fashion stock"},
+        ${"fashion"},
+        ${endsAt.toISOString()}
+      )`;
+    created.push("fashion");
   }
 
   // --- Market Master / Grand Challenge (25 stocks, 90 days) ---
@@ -59,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       INSERT INTO challenges (name, description, tickers, prize, challenge_type, ends_at)
       VALUES (
         ${"Market Master"},
-        ${"The ultimate challenge. Snap 25 brands across every sector of the economy over 90 days. Conquer the market and win $25 in free stocks."},
+        ${"The ultimate hunt. 25 brands across every sector. 90 days. One grand prize."},
         ${["AAPL", "TSLA", "AMZN", "GOOGL", "MSFT", "META", "NFLX", "NVDA", "MCD", "NKE", "SBUX", "KO", "PEP", "DIS", "V", "JPM", "WMT", "COST", "AMD", "UBER", "ABNB", "SPOT", "SNAP", "HOOD", "RIVN"]},
         ${"$25 in free stock tokens"},
         ${"grand"},

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Clock, Trophy, Users, Zap, Star } from "lucide-react";
+import { CheckCircle2, Circle, Zap, Trophy, Star } from "lucide-react";
 import { StockLogo } from "@/components/StockLogo";
 import { useWallet } from "@/contexts/WalletContext";
-import { formatDistanceToNow } from "date-fns";
+import { differenceInDays, differenceInHours } from "date-fns";
 import { EmailGateModal } from "@/components/EmailGateModal";
 
 interface Challenge {
@@ -20,97 +20,113 @@ interface Challenge {
   enrolled: boolean;
 }
 
-const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof Zap }> = {
-  weekly: { label: "Weekly", color: "text-green-700", bg: "bg-green-50 border-green-200", icon: Zap },
-  board: { label: "30-Day", color: "text-blue-700", bg: "bg-blue-50 border-blue-200", icon: Trophy },
-  grand: { label: "Grand Challenge", color: "text-purple-700", bg: "bg-purple-50 border-purple-200", icon: Star },
+const TYPE_CONFIG: Record<string, { label: string; accent: string; iconBg: string; icon: typeof Zap }> = {
+  weekly: { label: "Weekly",          accent: "text-emerald-600", iconBg: "bg-emerald-50", icon: Zap },
+  board:  { label: "30-Day",          accent: "text-blue-600",    iconBg: "bg-blue-50",    icon: Trophy },
+  grand:  { label: "Grand Challenge", accent: "text-purple-600",  iconBg: "bg-purple-50",  icon: Star },
 };
+
+function timeLeft(endsAt: string): string {
+  const end = new Date(endsAt);
+  const days = differenceInDays(end, new Date());
+  if (days > 1) return `${days}d`;
+  const hours = differenceInHours(end, new Date());
+  if (hours > 0) return `${hours}h`;
+  return "ending";
+}
 
 function ChallengeCard({
   challenge,
   onEnroll,
+  index,
 }: {
   challenge: Challenge;
   onEnroll: (c: Challenge) => void;
+  index: number;
 }) {
   const config = TYPE_CONFIG[challenge.challenge_type] ?? TYPE_CONFIG.weekly;
   const Icon = config.icon;
-  const completed = challenge.progress.length >= challenge.tickers.length;
-  const timeLeft = formatDistanceToNow(new Date(challenge.ends_at), { addSuffix: false });
+  const found = challenge.progress.length;
+  const total = challenge.tickers.length;
+  const completed = found >= total;
+  const pct = total > 0 ? (found / total) * 100 : 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.06 }}
       className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
-        <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${config.bg} ${config.color}`}>
-            <Icon className="h-3 w-3" />
-            {config.label}
-          </span>
-          <span className="font-semibold text-sm text-gray-900">{challenge.name}</span>
+      {/* ── Header ── */}
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
+        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${config.iconBg}`}>
+          <Icon className={`h-4 w-4 ${config.accent}`} />
         </div>
-        {completed ? (
-          <span className="text-[11px] font-semibold text-green-600">🎉 In the draw</span>
-        ) : null}
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{config.label}</p>
+          <p className="text-sm font-bold text-gray-900 leading-tight">{challenge.name}</p>
+        </div>
+        {completed && (
+          <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
+            🎉 In draw
+          </span>
+        )}
       </div>
 
-      {/* Stats row */}
-      <div className="flex items-center gap-4 px-4 py-2 text-[11px] text-gray-400">
-        <span className="flex items-center gap-1">
-          <Users className="h-3 w-3" />
-          {challenge.completedCount} completed
-        </span>
-        <span className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          {timeLeft} left
-        </span>
-        <span className="ml-auto font-medium text-gray-500">
-          Prize: <span className="text-gray-700">{challenge.prize}</span>
-        </span>
+      {/* ── 3-stat row ── */}
+      <div className="mx-4 mb-3 grid grid-cols-3 divide-x divide-gray-100 rounded-xl border border-gray-100 bg-gray-50">
+        <div className="flex flex-col items-center py-2.5 px-2">
+          <span className="text-[10px] font-medium text-gray-400 mb-0.5">Prize</span>
+          <span className={`text-xs font-bold ${config.accent} text-center leading-tight`}>{challenge.prize}</span>
+        </div>
+        <div className="flex flex-col items-center py-2.5 px-2">
+          <span className="text-[10px] font-medium text-gray-400 mb-0.5">Time left</span>
+          <span className="text-sm font-bold text-gray-900">{timeLeft(challenge.ends_at)}</span>
+        </div>
+        <div className="flex flex-col items-center py-2.5 px-2">
+          <span className="text-[10px] font-medium text-gray-400 mb-0.5">Completed</span>
+          <span className="text-sm font-bold text-gray-900">{challenge.completedCount}</span>
+        </div>
       </div>
 
-      {/* Ticker pills */}
-      <div className="px-4 py-2 flex flex-wrap gap-2">
+      {/* ── Ticker pills ── */}
+      <div className="px-4 pb-3 flex flex-wrap gap-1.5">
         {challenge.tickers.map((ticker) => {
           const done = challenge.progress.includes(ticker);
           return (
             <div
               key={ticker}
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold border transition-colors
+              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border transition-colors
                 ${done
-                  ? "bg-green-50 border-green-200 text-green-700"
-                  : "bg-gray-50 border-gray-200 text-gray-500"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-gray-50 border-gray-200 text-gray-400"
                 }`}
             >
-              {done ? (
-                <CheckCircle2 className="h-3 w-3 text-green-600 shrink-0" />
-              ) : (
-                <Circle className="h-3 w-3 text-gray-300 shrink-0" />
-              )}
-              <StockLogo ticker={ticker} size="sm" className="h-3.5 w-3.5" />
-              <span>{ticker}</span>
+              {done
+                ? <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                : <Circle className="h-3 w-3 text-gray-300 shrink-0" />
+              }
+              <StockLogo ticker={ticker} size="sm" className="h-3 w-3" />
+              {ticker}
             </div>
           );
         })}
       </div>
 
-      {/* Progress bar + action */}
-      <div className="px-4 pb-4 pt-2">
-        <div className="mb-3 flex items-center justify-between text-xs text-gray-400">
-          <span>{challenge.progress.length} / {challenge.tickers.length} found</span>
+      {/* ── Progress + action ── */}
+      <div className="px-4 pb-4">
+        <div className="mb-1.5 flex items-center justify-between text-[11px] text-gray-400">
+          <span>{found} / {total} found</span>
           {challenge.enrolled && !completed && (
-            <span className="text-green-600 font-medium">Enrolled</span>
+            <span className="text-emerald-600 font-medium">Tracking</span>
           )}
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100">
           <motion.div
-            className="h-full rounded-full bg-green-500"
+            className="h-full rounded-full bg-emerald-500"
             initial={{ width: 0 }}
-            animate={{ width: `${(challenge.progress.length / challenge.tickers.length) * 100}%` }}
+            animate={{ width: `${pct}%` }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           />
         </div>
@@ -118,9 +134,9 @@ function ChallengeCard({
         {!challenge.enrolled && !completed && (
           <button
             onClick={() => onEnroll(challenge)}
-            className="mt-3 w-full rounded-xl bg-gray-900 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
+            className="mt-3 w-full rounded-xl bg-gray-900 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 active:scale-[0.98] transition-all"
           >
-            Join & Track Progress
+            Join & Track
           </button>
         )}
       </div>
@@ -151,10 +167,11 @@ export function ChallengeCards() {
   if (loading) return (
     <div className="w-full max-w-md px-4 space-y-3">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-32 rounded-2xl border border-gray-100 bg-white shadow-sm animate-pulse" />
+        <div key={i} className="h-40 rounded-2xl border border-gray-100 bg-white shadow-sm animate-pulse" />
       ))}
     </div>
   );
+
   if (challenges.length === 0) return (
     <div className="w-full max-w-md px-4">
       <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-4 py-6 text-center text-sm text-gray-400">
@@ -166,11 +183,12 @@ export function ChallengeCards() {
   return (
     <>
       <div className="w-full max-w-md px-4 space-y-3">
-        {challenges.map((c) => (
+        {challenges.map((c, i) => (
           <ChallengeCard
             key={c.id}
             challenge={c}
             onEnroll={setEnrollTarget}
+            index={i}
           />
         ))}
       </div>

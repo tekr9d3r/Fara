@@ -148,8 +148,20 @@ export function ChallengeCards() {
 
   useEffect(() => { load(); }, [address]);
 
-  if (loading) return null;
-  if (challenges.length === 0) return null;
+  if (loading) return (
+    <div className="w-full max-w-md px-4 space-y-3">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-32 rounded-2xl border border-gray-100 bg-white shadow-sm animate-pulse" />
+      ))}
+    </div>
+  );
+  if (challenges.length === 0) return (
+    <div className="w-full max-w-md px-4">
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-4 py-6 text-center text-sm text-gray-400">
+        No active challenges right now — check back soon!
+      </div>
+    </div>
+  );
 
   return (
     <>

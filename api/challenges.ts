@@ -54,6 +54,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const userId = req.query.userId as string | undefined;
 
+    // Add column if it doesn't exist yet (safe migration)
+    await sql`ALTER TABLE challenges ADD COLUMN IF NOT EXISTS challenge_type TEXT NOT NULL DEFAULT 'weekly'`;
+
     const rows = await sql`
       SELECT id, name, description, tickers, prize, challenge_type, starts_at, ends_at
       FROM challenges
@@ -97,11 +100,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               AND created_at <= ${challenge.ends_at}`;
           userMinted = userRows.map((r) => r.ticker as string);
 
-          const enrollmentRows = await sql`
-            SELECT id FROM user_challenge_enrollments
-            WHERE user_id = ${userId} AND challenge_id = ${challenge.id}
-            LIMIT 1`;
-          enrolled = enrollmentRows.length > 0;
+          try {
+            const enrollmentRows = await sql`
+              SELECT id FROM user_challenge_enrollments
+              WHERE user_id = ${userId} AND challenge_id = ${challenge.id}
+              LIMIT 1`;
+            enrolled = enrollmentRows.length > 0;
+          } catch {
+            // table may not exist yet
+          }
         }
 
         return {

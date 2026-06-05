@@ -54,7 +54,6 @@ function ChallengeCard({
   const found = challenge.progress.length;
   const total = challenge.tickers.length;
   const completed = found >= total;
-  const pct = total > 0 ? (found / total) * 100 : 0;
 
   return (
     <motion.div
@@ -77,90 +76,54 @@ function ChallengeCard({
         )}
       </div>
 
-      {/* ── 3-stat row — exact design spec ── */}
-      {/* gap-px + bg-gray-100 creates 1px dividers between cells */}
-      <div className="grid grid-cols-3 gap-px bg-gray-100 border-t border-b border-gray-100">
-        {/* Days left */}
+      {/* ── Stock grid — primary visual ── */}
+      <div className="grid grid-cols-5 gap-2 px-3 pt-1 pb-3">
+        {challenge.tickers.map((ticker) => {
+          const minted = challenge.progress.includes(ticker);
+          const photoUrl = challenge.snapPhotos?.[ticker];
+
+          if (minted && photoUrl) {
+            return (
+              <div key={ticker} className="relative aspect-square rounded-[10px] overflow-hidden ring-[1.5px] ring-green-400">
+                <img src={photoUrl} alt={ticker} className="h-full w-full object-cover" loading="lazy" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-4 pb-[3px] px-[4px]">
+                  <span className="block text-[8px] font-bold text-white leading-none">✓ {ticker}</span>
+                </div>
+              </div>
+            );
+          }
+
+          if (minted) {
+            return (
+              <div key={ticker} className="aspect-square rounded-[10px] ring-[1.5px] ring-green-300 bg-green-50 flex flex-col items-center justify-center gap-0.5">
+                <StockLogo ticker={ticker} size="sm" className="h-[22px] w-[22px]" />
+                <span className="text-[8px] font-bold text-green-700 leading-none">✓ {ticker}</span>
+              </div>
+            );
+          }
+
+          return (
+            <div key={ticker} className="aspect-square rounded-[10px] border border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-0.5">
+              <StockLogo ticker={ticker} size="sm" className="h-[22px] w-[22px] opacity-60" />
+              <span className="text-[8px] font-bold text-gray-400 leading-none">{ticker}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── 2-col stats footer ── */}
+      <div className="grid grid-cols-2 gap-px bg-gray-100 border-t border-gray-100">
         <div className="flex flex-col items-center bg-white px-2.5 py-3 text-center">
           <span className="text-[15px] leading-none mb-0.5">⏱</span>
           <span className="text-[15px] font-bold text-gray-900 leading-tight">{timeLeft(challenge.ends_at)}</span>
           <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">{timeLeftUnit(challenge.ends_at)}</span>
         </div>
-        {/* Found */}
-        <div className="flex flex-col items-center bg-white px-2.5 py-3 text-center">
-          <span className="text-[15px] leading-none mb-0.5">◎</span>
-          <span className="text-[15px] font-bold text-gray-900 leading-tight">{found} / {total}</span>
-          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">Found</span>
-        </div>
-        {/* Prize — warm amber tint */}
         <div className="flex flex-col items-center bg-amber-50 px-2.5 py-3 text-center">
           <span className="text-[15px] leading-none mb-0.5">🏅</span>
           <span className="text-[15px] font-bold text-amber-700 leading-tight">{challenge.prize}</span>
           <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">Prize</span>
         </div>
       </div>
-
-      {/* ── Brand chips ── */}
-      <div className="flex flex-wrap gap-2 px-3.5 pt-3.5 pb-2">
-        {challenge.tickers.map((ticker) => {
-          const done = challenge.progress.includes(ticker);
-          return (
-            <div
-              key={ticker}
-              className={`flex items-center gap-1.5 rounded-full border-[1.5px] pl-1.5 pr-3 py-1 text-[13px] font-semibold transition-all select-none
-                ${done
-                  ? "border-green-400 bg-green-50 text-green-800"
-                  : "border-gray-200 bg-white text-gray-700"
-                }`}
-            >
-              <div className="h-[26px] w-[26px] shrink-0 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                <StockLogo ticker={ticker} size="sm" className="h-[22px] w-[22px]" />
-              </div>
-              {ticker}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── Progress bar + label ── */}
-      <div className="px-4 pb-1 pt-1">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100">
-          <motion.div
-            className="h-full rounded-full bg-green-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          />
-        </div>
-        <p className="mt-1.5 text-[12px] text-gray-400">{found} / {total} found</p>
-      </div>
-
-      {/* ── Snap thumbnails ── */}
-      {challenge.tickers.some((t) => challenge.snapPhotos?.[t]) && (
-        <div className="px-3.5 pb-3 pt-1">
-          <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {challenge.tickers
-              .filter((t) => challenge.snapPhotos?.[t])
-              .map((ticker) => (
-                <div
-                  key={ticker}
-                  className="relative shrink-0 h-[68px] w-[68px] rounded-[12px] overflow-hidden"
-                  style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.10)" }}
-                >
-                  <img
-                    src={challenge.snapPhotos[ticker]}
-                    alt={ticker}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent pt-4 pb-[5px] px-[5px]">
-                    <span className="block text-[9px] font-bold text-white leading-none">{ticker}</span>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
 
       {/* ── CTA ── */}
       {!completed && (

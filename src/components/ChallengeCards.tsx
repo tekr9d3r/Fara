@@ -95,17 +95,25 @@ function ChallengeCard({
 
           if (minted) {
             return (
-              <div key={ticker} className="aspect-square rounded-[10px] ring-[1.5px] ring-green-300 bg-green-50 flex flex-col items-center justify-center gap-0.5">
-                <StockLogo ticker={ticker} size="sm" className="h-[22px] w-[22px]" />
-                <span className="text-[8px] font-bold text-green-700 leading-none">✓ {ticker}</span>
+              <div key={ticker} className="relative aspect-square rounded-[10px] overflow-hidden ring-[1.5px] ring-green-400 bg-green-50">
+                <div className="absolute inset-1.5 flex items-center justify-center">
+                  <StockLogo ticker={ticker} className="h-full w-full object-contain rounded-none" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-green-900/60 to-transparent pt-5 pb-[3px] px-[4px]">
+                  <span className="block text-[8px] font-bold text-white leading-none">✓ {ticker}</span>
+                </div>
               </div>
             );
           }
 
           return (
-            <div key={ticker} className="aspect-square rounded-[10px] border border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-0.5">
-              <StockLogo ticker={ticker} size="sm" className="h-[22px] w-[22px] opacity-60" />
-              <span className="text-[8px] font-bold text-gray-400 leading-none">{ticker}</span>
+            <div key={ticker} className="relative aspect-square rounded-[10px] overflow-hidden border border-gray-100 bg-white">
+              <div className="absolute inset-1.5 flex items-center justify-center">
+                <StockLogo ticker={ticker} className="h-full w-full object-contain rounded-none" />
+              </div>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 to-transparent pt-5 pb-[3px] px-[4px]">
+                <span className="block text-[8px] font-bold text-white leading-none">{ticker}</span>
+              </div>
             </div>
           );
         })}

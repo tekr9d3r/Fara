@@ -89,17 +89,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           HAVING COUNT(DISTINCT ticker) >= ${tickers.length}`;
 
         let userMinted: string[] = [];
+        let snapPhotos: Record<string, string> = {};
         let enrolled = false;
 
         if (userId) {
+          // Most recent holding per ticker — also captures photo URL in one query
           const userRows = await sql`
-            SELECT DISTINCT ticker
+            SELECT DISTINCT ON (ticker) ticker, captured_image_url
             FROM holdings
             WHERE user_id = ${userId}
               AND ticker = ANY(${tickers})
               AND created_at >= ${challenge.starts_at}
-              AND created_at <= ${challenge.ends_at}`;
-          userMinted = userRows.map((r) => r.ticker as string);
+              AND created_at <= ${challenge.ends_at}
+            ORDER BY ticker, created_at DESC`;
+
+          for (const r of userRows) {
+            userMinted.push(r.ticker as string);
+            if (r.captured_image_url) {
+              snapPhotos[r.ticker as string] = r.captured_image_url as string;
+            }
+          }
 
           try {
             const enrollmentRows = await sql`
@@ -122,6 +131,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           starts_at: challenge.starts_at,
           ends_at: challenge.ends_at,
           progress: userMinted,
+          snapPhotos,
           completedCount: completedRows.length,
           enrolled,
         };

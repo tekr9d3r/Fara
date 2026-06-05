@@ -15,6 +15,7 @@ interface Challenge {
   starts_at: string;
   ends_at: string;
   progress: string[];
+  snapPhotos: Record<string, string>;
   completedCount: number;
   enrolled: boolean;
 }
@@ -133,6 +134,33 @@ function ChallengeCard({
         </div>
         <p className="mt-1.5 text-[12px] text-gray-400">{found} / {total} found</p>
       </div>
+
+      {/* ── Snap thumbnails ── */}
+      {challenge.tickers.some((t) => challenge.snapPhotos?.[t]) && (
+        <div className="px-3.5 pb-3 pt-1">
+          <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+            {challenge.tickers
+              .filter((t) => challenge.snapPhotos?.[t])
+              .map((ticker) => (
+                <div
+                  key={ticker}
+                  className="relative shrink-0 h-[68px] w-[68px] rounded-[12px] overflow-hidden"
+                  style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.10)" }}
+                >
+                  <img
+                    src={challenge.snapPhotos[ticker]}
+                    alt={ticker}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent pt-4 pb-[5px] px-[5px]">
+                    <span className="block text-[9px] font-bold text-white leading-none">{ticker}</span>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* ── CTA ── */}
       {!completed && (

@@ -147,8 +147,8 @@ export default function LandingPage() {
       {/* Top bar */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-          <span className="font-display text-base font-bold text-foreground">
-            Snap<span className="text-primary">'n</span>Invest
+          <span className="font-display text-base font-bold tracking-wide text-foreground">
+            Fara
           </span>
           <Button variant="outline" size="sm" disabled className="opacity-50 cursor-not-allowed gap-1.5">
             Launch App
@@ -187,7 +187,7 @@ export default function LandingPage() {
               Get Early Access
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Join the waitlist to be among the first to try Snap'n Invest.
+              Join the waitlist to be among the first to try Fara.
             </p>
 
             {submitted ? (
@@ -223,8 +223,7 @@ export default function LandingPage() {
           </div>
 
           <p className="mx-auto mt-8 max-w-lg text-lg text-muted-foreground">
-            The first app that turns everyday product discovery into real investment. 
-            Point your camera, recognize the brand, and buy tokenized stocks — instantly.
+            Hunt stocks in the wild. Spot a brand, snap a photo, mint the stock on-chain — then compete in challenges to win free stocks.
           </p>
         </motion.div>
 

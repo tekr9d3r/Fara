@@ -1,20 +1,32 @@
-const readmeContent = `# 📸 Snap'nInvest
+const readmeContent = `# Fara
 
-> **Snap a product. Invest in the brand. Powered by AI + blockchain.**
+> **Hunt stocks in the wild.**
 
-Snap'nInvest is a mobile-first dApp that lets users take photos of real-world products, identifies the brand using AI, and offers tokenized stock investment on the Robinhood Chain.
+Fara is a mobile-first adventure investing game. Spot brands in the real world, snap a photo, mint their tokenized stock on-chain, and compete in challenges to win free stock.
+
+*Fara — Old Norse for "to travel, to journey."*
+
+---
+
+## How it works
+
+1. **Spot a brand in the wild** — a store, a product, a logo on the street
+2. **Snap a photo** — Claude AI identifies the brand instantly
+3. **Mint the stock** — swap ETH for tokenized stock on Robinhood Chain
+4. **Complete challenges** — collect all stocks in a hunt to enter prize draws
 
 ---
 
 ## 🚀 Features
 
-- **📷 Snap to Invest** — Take a photo of any product; AI identifies the brand instantly
-- **🤖 AI Brand Recognition** — Powered by Google Gemini for accurate logo/product identification
+- **📷 Snap to Mint** — Take a photo of any brand; AI identifies it instantly
+- **🤖 AI Brand Recognition** — Powered by Claude (Anthropic) for accurate logo/product identification
 - **💰 Tokenized Stocks** — Buy fractional shares of identified brands on-chain
 - **🔗 Robinhood Chain** — Built on Robinhood's L2 testnet (Chain ID: 46630)
-- **👛 Wallet Auth** — Sign in with your Ethereum wallet via Privy
+- **👛 Wallet Auth** — Sign in with your Ethereum wallet via ConnectKit
+- **🏆 Adventure Challenges** — Weekly, seasonal, and grand hunts with free stock prizes
 - **📊 Portfolio Tracker** — View your holdings and investment history
-- **🌐 Live Feed** — See what others are snapping and investing in real-time
+- **🌐 Live Feed** — See what others are hunting and minting in real-time
 
 ---
 
@@ -118,7 +130,7 @@ Snap'nInvest is a mobile-first dApp that lets users take photos of real-world pr
 \`\`\`bash
 # Clone the repo
 git clone <YOUR_GIT_URL>
-cd snapninvest
+cd fara
 
 # Install dependencies
 npm install

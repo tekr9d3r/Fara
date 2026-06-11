@@ -22,7 +22,7 @@ export const wagmiConfig = createConfig(
       [robinhoodChain.id]: http("https://rpc.testnet.chain.robinhood.com"),
     },
     walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "",
-    appName: "SnapnInvest",
-    appDescription: "Snap a brand, invest in the stock on-chain",
+    appName: "Fara",
+    appDescription: "Hunt stocks in the wild.",
   })
 );

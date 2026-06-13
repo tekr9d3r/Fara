@@ -37,8 +37,8 @@ Fara is a mobile-first adventure investing game. Spot brands in the real world, 
 | **Frontend** | React 18, TypeScript, Vite |
 | **Styling** | Tailwind CSS, shadcn/ui, Framer Motion |
 | **Auth** | Privy (wallet-based authentication) |
-| **Backend** | Lovable Cloud (Edge Functions, PostgreSQL) |
-| **AI** | Google Gemini (brand identification) |
+| **Backend** | Vercel Serverless Functions, Neon PostgreSQL |
+| **AI** | Claude Haiku (Anthropic) — brand identification |
 | **Blockchain** | Robinhood Chain Testnet, ethers.js |
 | **State** | TanStack React Query |
 
@@ -74,7 +74,7 @@ Fara is a mobile-first adventure investing game. Spot brands in the real world, 
 
 ### Edge Functions
 
-- **\`identify-brand\`** — Accepts a product image, uses Gemini AI to identify the brand and return stock ticker info
+- **\`identify-brand\`** — Accepts a product image, uses Claude Haiku (Anthropic) to identify the brand and return stock ticker info
 - **\`stock-lookup\`** — Fetches real-time stock price data for identified tickers
 - **\`wallet-auth\`** — Handles wallet signature verification and session management
 
@@ -145,10 +145,10 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 🌐 Deployment
 
-The app is deployed via [Lovable](https://lovable.dev):
+The app is deployed via [Vercel](https://vercel.com):
 
-- **Preview**: Auto-deployed on every change
-- **Production**: Publish via Lovable dashboard → Share → Publish
+- **Preview**: Auto-deployed on every branch push
+- **Production**: Deployed from the main branch
 
 ---
 
@@ -168,7 +168,7 @@ MIT
 
 ---
 
-**Built with ❤️ using [Lovable](https://lovable.dev)**
+**Built with ❤️ using React, Vercel, and Claude AI**
 `;
 
 const ReadmePage = () => {

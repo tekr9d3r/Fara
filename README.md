@@ -25,7 +25,7 @@ No sign-up. No password. Just connect your wallet and start hunting.
 
 ## Features
 
-- **AI brand recognition** — Claude Haiku vision model identifies brands from photos
+- **AI brand recognition** — Vision model identifies brands from photos
 - **Real on-chain swaps** — MockSwap DEX with 536 tokenized stock/ETH liquidity pools
 - **536 tokenized stocks** — AAPL, TSLA, AMZN, GOOGL, and 532 more
 - **Adventure challenges** — Weekly sprints, themed hunts (Food & Drink, Fashion & Footwear), and a 25-stock grand challenge
